@@ -10,12 +10,12 @@ LETTER     [a-zA-Z]
 
 %%
 
-"display"        { return PRINT; }
-"read"           { return SCAN; }
+"display"        { return PRINT; } //our version
+"read"           { return SCAN; } //our version
 "if"             { return IF; }
 "else"           { return ELSE; }
 "while"          { return WHILE; }
-"give"           { return RETURN; }
+"give"           { return RETURN; } //our version
 
 
 \"[^\"]*\"       {
@@ -47,6 +47,12 @@ LETTER     [a-zA-Z]
 ")"            { return RPAREN; }
 ";"            { return SEMICOLON; }
 
+">="           { return GE; }
+"<="           { return LE; }
+"=="           { return EQ; }
+"!="           { return NE; }
+">"            { return GT; }
+"<"            { return LT; }
 
 [ \t\r\n]+     { /* skip */ }
 
@@ -57,5 +63,6 @@ LETTER     [a-zA-Z]
                }
 
 %%
+
 
 

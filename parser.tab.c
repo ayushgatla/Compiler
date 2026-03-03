@@ -77,14 +77,37 @@ void yyerror(const char *s);
 int yylex(void);
 
 typedef struct {
+    int isInitialized;
     int isString;
     int num;
     char* str;
+    
 } var;
 
 var vars[26] = {0};
+int tempCount = 0;
 
-#line 88 "parser.tab.c"
+char* newTemp() {
+    char* temp = malloc(10);
+    sprintf(temp, "t%d", tempCount++);
+    return temp;
+}
+int labelCount = 0;
+
+char* newLabel() {
+    char* label = malloc(10);
+    sprintf(label, "L%d", labelCount++);
+    return label;
+}
+
+char* IR[1000];
+int irIndex = 0;
+
+void emit(char* code) {
+    IR[irIndex++] = strdup(code);
+}
+
+#line 111 "parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -118,28 +141,36 @@ enum yysymbol_kind_t
   YYSYMBOL_NUM = 3,                        /* NUM  */
   YYSYMBOL_ID = 4,                         /* ID  */
   YYSYMBOL_STRING = 5,                     /* STRING  */
-  YYSYMBOL_PRINT = 6,                      /* PRINT  */
-  YYSYMBOL_SCAN = 7,                       /* SCAN  */
-  YYSYMBOL_IF = 8,                         /* IF  */
-  YYSYMBOL_ELSE = 9,                       /* ELSE  */
-  YYSYMBOL_WHILE = 10,                     /* WHILE  */
-  YYSYMBOL_RETURN = 11,                    /* RETURN  */
-  YYSYMBOL_PLUS = 12,                      /* PLUS  */
-  YYSYMBOL_MINUS = 13,                     /* MINUS  */
-  YYSYMBOL_MUL = 14,                       /* MUL  */
-  YYSYMBOL_DIV = 15,                       /* DIV  */
-  YYSYMBOL_REM = 16,                       /* REM  */
-  YYSYMBOL_ASSIGN = 17,                    /* ASSIGN  */
-  YYSYMBOL_LPAREN = 18,                    /* LPAREN  */
-  YYSYMBOL_RPAREN = 19,                    /* RPAREN  */
-  YYSYMBOL_SEMICOLON = 20,                 /* SEMICOLON  */
-  YYSYMBOL_YYACCEPT = 21,                  /* $accept  */
-  YYSYMBOL_program = 22,                   /* program  */
-  YYSYMBOL_stmt_list = 23,                 /* stmt_list  */
-  YYSYMBOL_stmt = 24,                      /* stmt  */
-  YYSYMBOL_expr = 25,                      /* expr  */
-  YYSYMBOL_term = 26,                      /* term  */
-  YYSYMBOL_factor = 27                     /* factor  */
+  YYSYMBOL_LT = 6,                         /* LT  */
+  YYSYMBOL_GT = 7,                         /* GT  */
+  YYSYMBOL_LE = 8,                         /* LE  */
+  YYSYMBOL_GE = 9,                         /* GE  */
+  YYSYMBOL_EQ = 10,                        /* EQ  */
+  YYSYMBOL_NE = 11,                        /* NE  */
+  YYSYMBOL_PRINT = 12,                     /* PRINT  */
+  YYSYMBOL_SCAN = 13,                      /* SCAN  */
+  YYSYMBOL_IF = 14,                        /* IF  */
+  YYSYMBOL_ELSE = 15,                      /* ELSE  */
+  YYSYMBOL_WHILE = 16,                     /* WHILE  */
+  YYSYMBOL_RETURN = 17,                    /* RETURN  */
+  YYSYMBOL_PLUS = 18,                      /* PLUS  */
+  YYSYMBOL_MINUS = 19,                     /* MINUS  */
+  YYSYMBOL_MUL = 20,                       /* MUL  */
+  YYSYMBOL_DIV = 21,                       /* DIV  */
+  YYSYMBOL_REM = 22,                       /* REM  */
+  YYSYMBOL_ASSIGN = 23,                    /* ASSIGN  */
+  YYSYMBOL_LPAREN = 24,                    /* LPAREN  */
+  YYSYMBOL_RPAREN = 25,                    /* RPAREN  */
+  YYSYMBOL_SEMICOLON = 26,                 /* SEMICOLON  */
+  YYSYMBOL_LOWER_THAN_ELSE = 27,           /* LOWER_THAN_ELSE  */
+  YYSYMBOL_YYACCEPT = 28,                  /* $accept  */
+  YYSYMBOL_program = 29,                   /* program  */
+  YYSYMBOL_stmt_list = 30,                 /* stmt_list  */
+  YYSYMBOL_LABEL = 31,                     /* LABEL  */
+  YYSYMBOL_stmt = 32,                      /* stmt  */
+  YYSYMBOL_expr = 33,                      /* expr  */
+  YYSYMBOL_term = 34,                      /* term  */
+  YYSYMBOL_factor = 35                     /* factor  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -465,21 +496,21 @@ union yyalloc
 #endif /* !YYCOPY_NEEDED */
 
 /* YYFINAL -- State number of the termination state.  */
-#define YYFINAL  16
+#define YYFINAL  18
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   39
+#define YYLAST   100
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  21
+#define YYNTOKENS  28
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  7
+#define YYNNTS  8
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  19
+#define YYNRULES  28
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  37
+#define YYNSTATES  58
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   275
+#define YYMAXUTOK   282
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -520,15 +551,17 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
-      15,    16,    17,    18,    19,    20
+      15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
+      25,    26,    27
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_int16 yyrline[] =
 {
-       0,    52,    52,    57,    58,    63,    74,    80,    88,    93,
-     122,   132,   142,   150,   160,   170,   184,   192,   198,   209
+       0,    83,    83,    88,    89,    94,   100,   124,   144,   151,
+     163,   172,   182,   210,   226,   241,   251,   261,   271,   281,
+     291,   302,   310,   326,   342,   358,   366,   379,   402
 };
 #endif
 
@@ -545,9 +578,10 @@ static const char *yysymbol_name (yysymbol_kind_t yysymbol) YY_ATTRIBUTE_UNUSED;
 static const char *const yytname[] =
 {
   "\"end of file\"", "error", "\"invalid token\"", "NUM", "ID", "STRING",
-  "PRINT", "SCAN", "IF", "ELSE", "WHILE", "RETURN", "PLUS", "MINUS", "MUL",
-  "DIV", "REM", "ASSIGN", "LPAREN", "RPAREN", "SEMICOLON", "$accept",
-  "program", "stmt_list", "stmt", "expr", "term", "factor", YY_NULLPTR
+  "LT", "GT", "LE", "GE", "EQ", "NE", "PRINT", "SCAN", "IF", "ELSE",
+  "WHILE", "RETURN", "PLUS", "MINUS", "MUL", "DIV", "REM", "ASSIGN",
+  "LPAREN", "RPAREN", "SEMICOLON", "LOWER_THAN_ELSE", "$accept", "program",
+  "stmt_list", "LABEL", "stmt", "expr", "term", "factor", YY_NULLPTR
 };
 
 static const char *
@@ -557,7 +591,7 @@ yysymbol_name (yysymbol_kind_t yysymbol)
 }
 #endif
 
-#define YYPACT_NINF (-8)
+#define YYPACT_NINF (-15)
 
 #define yypact_value_is_default(Yyn) \
   ((Yyn) == YYPACT_NINF)
@@ -571,10 +605,12 @@ yysymbol_name (yysymbol_kind_t yysymbol)
    STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-      21,    -7,    -3,    13,    23,    21,    -8,     0,    -8,    -8,
-       4,     3,    -4,    16,    -8,     9,    -8,    -8,    18,    -1,
-      -8,     1,     3,     3,    -8,     3,     3,     3,    -8,    -8,
-      -8,    -8,    16,    16,    -8,    -8,    -8
+       6,   -14,    -2,    23,    22,    29,     6,   -15,     1,   -15,
+     -15,    25,     4,     5,    18,   -15,    33,     4,   -15,   -15,
+      34,    26,   -15,    47,     4,     4,     4,     4,     4,     4,
+       4,     4,   -15,     4,     4,     4,   -15,    67,   -15,   -15,
+     -15,    18,    18,    18,    18,    18,    18,    18,    18,   -15,
+     -15,   -15,   -15,     6,    15,   -15,     6,   -15
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -582,22 +618,24 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     0,     0,     2,     4,     0,    17,    18,
-       0,     0,     0,    12,    16,     0,     1,     3,     0,     0,
-       8,     0,     0,     0,     7,     0,     0,     0,     9,     6,
-       5,    19,    10,    11,    13,    14,    15
+       0,     0,     0,     0,     0,     0,     2,     4,     0,    26,
+      27,     0,     0,     0,    21,    25,     0,     0,     1,     3,
+       0,     0,     9,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     8,     0,     0,     0,    10,     0,     7,     6,
+      28,    16,    15,    18,    17,    20,    19,    13,    14,    22,
+      23,    24,     5,     0,    11,     5,     0,    12
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-      -8,    -8,    -8,    34,    15,    14,     8
+     -15,   -15,   -15,    -7,    -6,     9,    69,     8
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     4,     5,     6,    12,    13,    14
+       0,     5,     6,    53,     7,    13,    14,    15
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -605,42 +643,60 @@ static const yytype_int8 yydefgoto[] =
    number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_int8 yytable[] =
 {
-       8,     9,    10,     8,     9,    18,     8,     9,    22,    23,
-       7,    22,    23,    22,    23,    11,    24,    15,    11,    30,
-      31,    11,    19,    16,    20,     1,    21,     2,     3,    28,
-      25,    26,    27,    34,    35,    36,    32,    33,    29,    17
+      19,     9,    10,    11,     9,    10,    20,     9,    10,     8,
+       1,    24,    25,    26,    27,    28,    29,    21,     2,     3,
+       4,    23,    12,    30,    31,    12,    37,    16,    12,    18,
+      55,    32,    24,    25,    26,    27,    28,    29,    33,    34,
+      35,    49,    50,    51,    30,    31,    17,    54,    56,     0,
+      57,    22,    39,    24,    25,    26,    27,    28,    29,    36,
+      38,     0,     0,     0,     0,    30,    31,     0,     0,     0,
+       0,     0,    40,    24,    25,    26,    27,    28,    29,     0,
+       0,     0,     0,     0,     0,    30,    31,     0,     0,     0,
+       0,     0,    52,    41,    42,    43,    44,    45,    46,    47,
+      48
 };
 
 static const yytype_int8 yycheck[] =
 {
-       3,     4,     5,     3,     4,     5,     3,     4,    12,    13,
-      17,    12,    13,    12,    13,    18,    20,     4,    18,    20,
-      19,    18,     7,     0,    20,     4,    11,     6,     7,    20,
-      14,    15,    16,    25,    26,    27,    22,    23,    20,     5
+       6,     3,     4,     5,     3,     4,     5,     3,     4,    23,
+       4,     6,     7,     8,     9,    10,    11,     8,    12,    13,
+      14,    12,    24,    18,    19,    24,    17,     4,    24,     0,
+      15,    26,     6,     7,     8,     9,    10,    11,    20,    21,
+      22,    33,    34,    35,    18,    19,    24,    53,    55,    -1,
+      56,    26,    26,     6,     7,     8,     9,    10,    11,    26,
+      26,    -1,    -1,    -1,    -1,    18,    19,    -1,    -1,    -1,
+      -1,    -1,    25,     6,     7,     8,     9,    10,    11,    -1,
+      -1,    -1,    -1,    -1,    -1,    18,    19,    -1,    -1,    -1,
+      -1,    -1,    25,    24,    25,    26,    27,    28,    29,    30,
+      31
 };
 
 /* YYSTOS[STATE-NUM] -- The symbol kind of the accessing symbol of
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     4,     6,     7,    22,    23,    24,    17,     3,     4,
-       5,    18,    25,    26,    27,     4,     0,    24,     5,    25,
-      20,    25,    12,    13,    20,    14,    15,    16,    20,    20,
-      20,    19,    26,    26,    27,    27,    27
+       0,     4,    12,    13,    14,    29,    30,    32,    23,     3,
+       4,     5,    24,    33,    34,    35,     4,    24,     0,    32,
+       5,    33,    26,    33,     6,     7,     8,     9,    10,    11,
+      18,    19,    26,    20,    21,    22,    26,    33,    26,    26,
+      25,    34,    34,    34,    34,    34,    34,    34,    34,    35,
+      35,    35,    25,    31,    32,    15,    31,    32
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    21,    22,    23,    23,    24,    24,    24,    24,    24,
-      25,    25,    25,    26,    26,    26,    26,    27,    27,    27
+       0,    28,    29,    30,    30,    31,    32,    32,    32,    32,
+      32,    32,    32,    33,    33,    33,    33,    33,    33,    33,
+      33,    33,    34,    34,    34,    34,    35,    35,    35
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     1,     2,     1,     4,     4,     3,     3,     3,
-       3,     3,     1,     3,     3,     3,     1,     1,     1,     3
+       0,     2,     1,     2,     1,     0,     4,     4,     3,     3,
+       3,     6,     9,     3,     3,     3,     3,     3,     3,     3,
+       3,     1,     3,     3,     3,     1,     1,     1,     3
 };
 
 
@@ -1103,195 +1159,387 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 5: /* stmt: ID ASSIGN expr SEMICOLON  */
-#line 64 "parser.y"
-        {
-            if((yyvsp[-1].val).isString) {
-                vars[(yyvsp[-3].id)].isString = 1;
-                vars[(yyvsp[-3].id)].str = strdup((yyvsp[-1].val).str);
-            } else {
-                vars[(yyvsp[-3].id)].isString = 0;
-                vars[(yyvsp[-3].id)].num = (yyvsp[-1].val).num;
-            }
-        }
-#line 1118 "parser.tab.c"
-    break;
-
-  case 6: /* stmt: ID ASSIGN STRING SEMICOLON  */
-#line 75 "parser.y"
-        {
-            vars[(yyvsp[-3].id)].isString = 1;
-            vars[(yyvsp[-3].id)].str = strdup((yyvsp[-1].str));
-        }
-#line 1127 "parser.tab.c"
-    break;
-
-  case 7: /* stmt: PRINT expr SEMICOLON  */
-#line 81 "parser.y"
-        {
-            if((yyvsp[-1].val).isString)
-                printf("%s\n", (yyvsp[-1].val).str);
-            else
-                printf("%d\n", (yyvsp[-1].val).num);
-        }
-#line 1138 "parser.tab.c"
-    break;
-
-  case 8: /* stmt: PRINT STRING SEMICOLON  */
-#line 89 "parser.y"
-        {
-            printf("%s\n", (yyvsp[-1].str));
-        }
-#line 1146 "parser.tab.c"
-    break;
-
-  case 9: /* stmt: SCAN ID SEMICOLON  */
+  case 5: /* LABEL: %empty  */
 #line 94 "parser.y"
-        {
-	    char buffer[256];
+{
+    (yyval.str) = newLabel();
+}
+#line 1168 "parser.tab.c"
+    break;
 
-	    // keep reading until we get a non-empty line or EOF
-	    do {
-		if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
-		    printf("Input error\n");
+  case 6: /* stmt: ID ASSIGN expr SEMICOLON  */
+#line 101 "parser.y"
+       {
+
+	    if(vars[(yyvsp[-3].id)].isInitialized) {
+		if(vars[(yyvsp[-3].id)].isString != (yyvsp[-1].val).isString) {
+		    printf("Type error: variable '%c' type mismatch\n", 'a' + (yyvsp[-3].id));
 		    exit(1);
 		}
-	    } while (buffer[0] == '\n' || buffer[0] == '\0');
-
-	    buffer[strcspn(buffer, "\n")] = '\0';
-
-	    char *endptr;
-	    long val = strtol(buffer, &endptr, 10);
-
-	    if (*endptr == '\0') {
-		vars[(yyvsp[-1].id)].isString = 0;
-		vars[(yyvsp[-1].id)].num = (int)val;
-	    } else {
-		vars[(yyvsp[-1].id)].isString = 1;
-		vars[(yyvsp[-1].id)].str = strdup(buffer);
 	    }
-	}
-#line 1175 "parser.tab.c"
+
+	    vars[(yyvsp[-3].id)].isInitialized = 1;
+
+	    if((yyvsp[-1].val).isString) {
+		vars[(yyvsp[-3].id)].isString = 1;
+		vars[(yyvsp[-3].id)].str = strdup((yyvsp[-1].val).str);
+	    } else {
+		vars[(yyvsp[-3].id)].isString = 0;
+		vars[(yyvsp[-3].id)].num = (yyvsp[-1].val).num;
+	    }
+	    char buffer[100];
+		sprintf(buffer, "%c = %s", 'a' + (yyvsp[-3].id), (yyvsp[-1].val).place);
+		emit(buffer);
+       }
+#line 1195 "parser.tab.c"
     break;
 
-  case 10: /* expr: expr PLUS term  */
-#line 123 "parser.y"
+  case 7: /* stmt: ID ASSIGN STRING SEMICOLON  */
+#line 125 "parser.y"
+        {
+	    if(vars[(yyvsp[-3].id)].isInitialized && vars[(yyvsp[-3].id)].isString == 0) {
+		printf("Type error: variable '%c' was int, cannot assign string\n", 'a' +(yyvsp[-3].id));
+		exit(1);
+	    }
+
+	    vars[(yyvsp[-3].id)].isInitialized = 1;
+	    vars[(yyvsp[-3].id)].isString = 1;
+	    vars[(yyvsp[-3].id)].str = strdup((yyvsp[-1].str));
+	    char* temp = newTemp();
+char buffer1[100];
+sprintf(buffer1, "%s = \"%s\"", temp, (yyvsp[-1].str));
+emit(buffer1);
+
+char buffer2[100];
+sprintf(buffer2, "%c = %s", 'a' + (yyvsp[-3].id), temp);
+emit(buffer2);
+           }
+#line 1218 "parser.tab.c"
+    break;
+
+  case 8: /* stmt: PRINT expr SEMICOLON  */
+#line 145 "parser.y"
+{
+    char buffer[100];
+    sprintf(buffer, "PRINT %s", (yyvsp[-1].val).place);
+    emit(buffer);
+}
+#line 1228 "parser.tab.c"
+    break;
+
+  case 9: /* stmt: PRINT STRING SEMICOLON  */
+#line 152 "parser.y"
+{
+    char* temp = newTemp();
+    char buffer1[100];
+    sprintf(buffer1, "%s = \"%s\"", temp, (yyvsp[-1].str));
+    emit(buffer1);
+
+    char buffer2[100];
+    sprintf(buffer2, "PRINT %s", temp);
+    emit(buffer2);
+}
+#line 1243 "parser.tab.c"
+    break;
+
+  case 10: /* stmt: SCAN ID SEMICOLON  */
+#line 164 "parser.y"
+{
+    vars[(yyvsp[-1].id)].isInitialized = 1;
+    vars[(yyvsp[-1].id)].isString = 0;   // assume input numeric for now
+
+    char buffer[50];
+    sprintf(buffer, "READ %c", 'a' + (yyvsp[-1].id));
+    emit(buffer);
+}
+#line 1256 "parser.tab.c"
+    break;
+
+  case 11: /* stmt: IF LPAREN expr RPAREN LABEL stmt  */
+#line 173 "parser.y"
+{
+    char buffer[100];
+
+    sprintf(buffer, "ifFalse %s goto %s", (yyvsp[-3].val).place, (yyvsp[-1].str));
+    emit(buffer);
+
+    sprintf(buffer, "%s:", (yyvsp[-1].str));
+    emit(buffer);
+}
+#line 1270 "parser.tab.c"
+    break;
+
+  case 12: /* stmt: IF LPAREN expr RPAREN LABEL stmt ELSE LABEL stmt  */
+#line 183 "parser.y"
+{
+    char buffer[100];
+
+    // jump if condition false
+    sprintf(buffer, "ifFalse %s goto %s", (yyvsp[-6].val).place, (yyvsp[-4].str));
+    emit(buffer);
+
+    // jump over else part
+    sprintf(buffer, "goto %s", (yyvsp[-1].str));
+    emit(buffer);
+
+    // else label
+    sprintf(buffer, "%s:", (yyvsp[-4].str));
+    emit(buffer);
+
+    // end label
+    sprintf(buffer, "%s:", (yyvsp[-1].str));
+    emit(buffer);
+}
+#line 1294 "parser.tab.c"
+    break;
+
+  case 13: /* expr: expr PLUS term  */
+#line 211 "parser.y"
         {
             if((yyvsp[-2].val).isString || (yyvsp[0].val).isString) {
                 printf("Type error: cannot add string\n");
                 exit(1);
             }
             (yyval.val).isString = 0;
-            (yyval.val).num = (yyvsp[-2].val).num + (yyvsp[0].val).num;
+		char* temp = newTemp();
+		char buffer[100];
+		sprintf(buffer, "%s = %s + %s", temp, (yyvsp[-2].val).place, (yyvsp[0].val).place);
+		emit(buffer);
+
+		(yyval.val).place = temp;
+		(yyval.val).isString = 0;
         }
-#line 1188 "parser.tab.c"
+#line 1313 "parser.tab.c"
     break;
 
-  case 11: /* expr: expr MINUS term  */
-#line 133 "parser.y"
+  case 14: /* expr: expr MINUS term  */
+#line 227 "parser.y"
         {
             if((yyvsp[-2].val).isString || (yyvsp[0].val).isString) {
                 printf("Type error: cannot subtract string\n");
                 exit(1);
             }
             (yyval.val).isString = 0;
-            (yyval.val).num = (yyvsp[-2].val).num - (yyvsp[0].val).num;
+		char* temp = newTemp();
+		char buffer[100];
+		sprintf(buffer, "%s = %s - %s", temp, (yyvsp[-2].val).place, (yyvsp[0].val).place);
+		emit(buffer);
+
+		(yyval.val).place = temp;
+		(yyval.val).isString = 0;
         }
-#line 1201 "parser.tab.c"
+#line 1332 "parser.tab.c"
     break;
 
-  case 12: /* expr: term  */
-#line 143 "parser.y"
+  case 15: /* expr: expr GT term  */
+#line 242 "parser.y"
+{
+    char* temp = newTemp();
+    char buffer[100];
+    sprintf(buffer, "%s = %s > %s", temp, (yyvsp[-2].val).place, (yyvsp[0].val).place);
+    emit(buffer);
+
+    (yyval.val).place = temp;
+    (yyval.val).isString = 0;
+}
+#line 1346 "parser.tab.c"
+    break;
+
+  case 16: /* expr: expr LT term  */
+#line 252 "parser.y"
+{
+    char* temp = newTemp();
+    char buffer[100];
+    sprintf(buffer, "%s = %s < %s", temp, (yyvsp[-2].val).place, (yyvsp[0].val).place);
+    emit(buffer);
+
+    (yyval.val).place = temp;
+    (yyval.val).isString = 0;
+}
+#line 1360 "parser.tab.c"
+    break;
+
+  case 17: /* expr: expr GE term  */
+#line 262 "parser.y"
+{
+    char* temp = newTemp();
+    char buffer[100];
+    sprintf(buffer, "%s = %s >= %s", temp, (yyvsp[-2].val).place, (yyvsp[0].val).place);
+    emit(buffer);
+
+    (yyval.val).place = temp;
+    (yyval.val).isString = 0;
+}
+#line 1374 "parser.tab.c"
+    break;
+
+  case 18: /* expr: expr LE term  */
+#line 272 "parser.y"
+{
+    char* temp = newTemp();
+    char buffer[100];
+    sprintf(buffer, "%s = %s <= %s", temp, (yyvsp[-2].val).place, (yyvsp[0].val).place);
+    emit(buffer);
+
+    (yyval.val).place = temp;
+    (yyval.val).isString = 0;
+}
+#line 1388 "parser.tab.c"
+    break;
+
+  case 19: /* expr: expr NE term  */
+#line 282 "parser.y"
+{
+    char* temp = newTemp();
+    char buffer[100];
+    sprintf(buffer, "%s = %s != %s", temp, (yyvsp[-2].val).place, (yyvsp[0].val).place);
+    emit(buffer);
+
+    (yyval.val).place = temp;
+    (yyval.val).isString = 0;
+}
+#line 1402 "parser.tab.c"
+    break;
+
+  case 20: /* expr: expr EQ term  */
+#line 292 "parser.y"
+{
+    char* temp = newTemp();
+    char buffer[100];
+    sprintf(buffer, "%s = %s == %s", temp, (yyvsp[-2].val).place, (yyvsp[0].val).place);
+    emit(buffer);
+
+    (yyval.val).place = temp;
+    (yyval.val).isString = 0;
+}
+#line 1416 "parser.tab.c"
+    break;
+
+  case 21: /* expr: term  */
+#line 303 "parser.y"
         {
             (yyval.val) = (yyvsp[0].val);
         }
-#line 1209 "parser.tab.c"
+#line 1424 "parser.tab.c"
     break;
 
-  case 13: /* term: term MUL factor  */
-#line 151 "parser.y"
+  case 22: /* term: term MUL factor  */
+#line 311 "parser.y"
         {
             if((yyvsp[-2].val).isString || (yyvsp[0].val).isString) {
                 printf("Type error: cannot multiply string\n");
                 exit(1);
             }
             (yyval.val).isString = 0;
-            (yyval.val).num = (yyvsp[-2].val).num * (yyvsp[0].val).num;
+		char* temp = newTemp();
+		char buffer[100];
+		sprintf(buffer, "%s = %s * %s", temp, (yyvsp[-2].val).place, (yyvsp[0].val).place);
+		emit(buffer);
+
+		(yyval.val).place = temp;
+		(yyval.val).isString = 0;
         }
-#line 1222 "parser.tab.c"
+#line 1443 "parser.tab.c"
     break;
 
-  case 14: /* term: term DIV factor  */
-#line 161 "parser.y"
+  case 23: /* term: term DIV factor  */
+#line 327 "parser.y"
         {
             if((yyvsp[-2].val).isString || (yyvsp[0].val).isString) {
                 printf("Type error: cannot divide string\n");
                 exit(1);
             }
             (yyval.val).isString = 0;
-            (yyval.val).num = (yyvsp[-2].val).num / (yyvsp[0].val).num;
+	char* temp = newTemp();
+	char buffer[100];
+	sprintf(buffer, "%s = %s / %s", temp, (yyvsp[-2].val).place, (yyvsp[0].val).place);
+	emit(buffer);
+
+	(yyval.val).place = temp;
+	(yyval.val).isString = 0;
         }
-#line 1235 "parser.tab.c"
+#line 1462 "parser.tab.c"
     break;
 
-  case 15: /* term: term REM factor  */
-#line 171 "parser.y"
-        {
-	    if((yyvsp[-2].val).isString || (yyvsp[0].val).isString) {
-		printf("Type error: cannot mod string\n");
-		exit(1);
-	    }
-	    if((yyvsp[0].val).num == 0) {
-		printf("Runtime error: mod by zero\n");
-		exit(1);
-	    }
-	    (yyval.val).isString = 0;
-	    (yyval.val).num = (yyvsp[-2].val).num % (yyvsp[0].val).num;
-	}
-#line 1252 "parser.tab.c"
+  case 24: /* term: term REM factor  */
+#line 343 "parser.y"
+{
+    if((yyvsp[-2].val).isString || (yyvsp[0].val).isString) {
+        printf("Type error: cannot mod string\n");
+        exit(1);
+    }
+
+    char* temp = newTemp();
+    char buffer[100];
+    sprintf(buffer, "%s = %s %% %s", temp, (yyvsp[-2].val).place, (yyvsp[0].val).place);
+    emit(buffer);
+
+    (yyval.val).place = temp;
+    (yyval.val).isString = 0;
+}
+#line 1481 "parser.tab.c"
     break;
 
-  case 16: /* term: factor  */
-#line 185 "parser.y"
+  case 25: /* term: factor  */
+#line 359 "parser.y"
         {
             (yyval.val) = (yyvsp[0].val);
         }
-#line 1260 "parser.tab.c"
+#line 1489 "parser.tab.c"
     break;
 
-  case 17: /* factor: NUM  */
-#line 193 "parser.y"
+  case 26: /* factor: NUM  */
+#line 367 "parser.y"
         {
             (yyval.val).isString = 0;
-            (yyval.val).num = (yyvsp[0].num);
+	    (yyval.val).num = (yyvsp[0].num);
+
+		char* temp = newTemp();
+		char buffer[100];
+		sprintf(buffer, "%s = %d", temp, (yyvsp[0].num));
+		emit(buffer);
+
+		(yyval.val).place = temp;
         }
-#line 1269 "parser.tab.c"
+#line 1505 "parser.tab.c"
     break;
 
-  case 18: /* factor: ID  */
-#line 199 "parser.y"
+  case 27: /* factor: ID  */
+#line 380 "parser.y"
         {
-            if(vars[(yyvsp[0].id)].isString) {
-                (yyval.val).isString = 1;
-                (yyval.val).str = vars[(yyvsp[0].id)].str;
-            } else {
-                (yyval.val).isString = 0;
-                (yyval.val).num = vars[(yyvsp[0].id)].num;
-            }
-        }
-#line 1283 "parser.tab.c"
+         if(!vars[(yyvsp[0].id)].isInitialized) {
+		printf("Error: variable '%c' used before initialization\n", 'a' + (yyvsp[0].id));
+		exit(1);
+	    }
+
+	    (yyval.val).isString = vars[(yyvsp[0].id)].isString;
+
+	    if(vars[(yyvsp[0].id)].isString)
+		(yyval.val).str = vars[(yyvsp[0].id)].str;
+	    else
+		(yyval.val).num = vars[(yyvsp[0].id)].num;
+
+	    char* temp = newTemp();
+	    char buffer[100];
+
+	    sprintf(buffer, "%s = %c", temp, 'a' + (yyvsp[0].id));
+	    emit(buffer);
+
+	    (yyval.val).place = temp;
+	 }
+#line 1531 "parser.tab.c"
     break;
 
-  case 19: /* factor: LPAREN expr RPAREN  */
-#line 210 "parser.y"
+  case 28: /* factor: LPAREN expr RPAREN  */
+#line 403 "parser.y"
         {
             (yyval.val) = (yyvsp[-1].val);
         }
-#line 1291 "parser.tab.c"
+#line 1539 "parser.tab.c"
     break;
 
 
-#line 1295 "parser.tab.c"
+#line 1543 "parser.tab.c"
 
       default: break;
     }
@@ -1484,15 +1732,78 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 215 "parser.y"
+#line 408 "parser.y"
 
 
 void yyerror(const char *s) {
     printf("Syntax error: %s\n", s);
 }
-
 int main() {
     printf("Enter program:\n");
     yyparse();
+
+    printf("\nGenerated IR:\n");
+    FILE *fp = fopen("output.c", "w");
+
+fprintf(fp, "#include <stdio.h>\n");
+fprintf(fp, "int main() {\n");
+
+
+for(int i = 0; i < 26; i++) {
+    if(vars[i].isInitialized)
+        fprintf(fp, "int %c;\n", 'a' + i);
+}
+
+
+for(int i = 0; i < tempCount; i++)
+    fprintf(fp, "int t%d;\n", i);
+
+
+for(int i = 0; i < irIndex; i++) {
+
+    // READ
+    if(strncmp(IR[i], "READ", 4) == 0) {
+        char var;
+        sscanf(IR[i], "READ %c", &var);
+        fprintf(fp, "scanf(\"%%d\", &%c);\n", var);
+    }
+
+    // PRINT
+    else if(strncmp(IR[i], "PRINT", 5) == 0) {
+        char var[20];
+        sscanf(IR[i], "PRINT %s", var);
+        fprintf(fp, "printf(\"%%d\\n\", %s);\n", var);
+    }
+
+    // ifFalse → convert to valid C
+    else if(strncmp(IR[i], "ifFalse", 7) == 0) {
+        char cond[20], label[20];
+        sscanf(IR[i], "ifFalse %s goto %s", cond, label);
+        fprintf(fp, "if (!%s) goto %s;\n", cond, label);
+    }
+
+    // goto
+    else if(strncmp(IR[i], "goto", 4) == 0) {
+        char label[20];
+        sscanf(IR[i], "goto %s", label);
+        fprintf(fp, "goto %s;\n", label);
+    }
+
+    // label (ends with :)
+    else if(strchr(IR[i], ':')) {
+        fprintf(fp, "%s\n", IR[i]);
+    }
+
+    // normal assignment
+    else {
+        fprintf(fp, "%s;\n", IR[i]);
+    }
+}
+
+fprintf(fp, "return 0;\n}");
+fclose(fp);
+
+printf("\nC code generated in output.c\n");
+
     return 0;
 }
