@@ -77,8 +77,7 @@ extern int yydebug;
     ASSIGN = 278,                  /* ASSIGN  */
     LPAREN = 279,                  /* LPAREN  */
     RPAREN = 280,                  /* RPAREN  */
-    SEMICOLON = 281,               /* SEMICOLON  */
-    LOWER_THAN_ELSE = 282          /* LOWER_THAN_ELSE  */
+    SEMICOLON = 281                /* SEMICOLON  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -87,7 +86,7 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 42 "parser.y"
+#line 51 "parser.y"
 
     int num;
     int id;
@@ -105,7 +104,7 @@ union YYSTYPE
     char* L2;
      } labels;
 
-#line 109 "parser.tab.h"
+#line 108 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;

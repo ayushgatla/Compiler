@@ -99,7 +99,16 @@ char* newLabel() {
     sprintf(label, "L%d", labelCount++);
     return label;
 }
+char* labelStack[100];
+int top = -1;
 
+void pushLabel(char* l) {
+    labelStack[++top] = l;
+}
+
+char* popLabel() {
+    return labelStack[top--];
+}
 char* IR[1000];
 int irIndex = 0;
 
@@ -107,7 +116,7 @@ void emit(char* code) {
     IR[irIndex++] = strdup(code);
 }
 
-#line 111 "parser.tab.c"
+#line 120 "parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -162,15 +171,16 @@ enum yysymbol_kind_t
   YYSYMBOL_LPAREN = 24,                    /* LPAREN  */
   YYSYMBOL_RPAREN = 25,                    /* RPAREN  */
   YYSYMBOL_SEMICOLON = 26,                 /* SEMICOLON  */
-  YYSYMBOL_LOWER_THAN_ELSE = 27,           /* LOWER_THAN_ELSE  */
-  YYSYMBOL_YYACCEPT = 28,                  /* $accept  */
-  YYSYMBOL_program = 29,                   /* program  */
-  YYSYMBOL_stmt_list = 30,                 /* stmt_list  */
-  YYSYMBOL_LABEL = 31,                     /* LABEL  */
-  YYSYMBOL_stmt = 32,                      /* stmt  */
-  YYSYMBOL_expr = 33,                      /* expr  */
-  YYSYMBOL_term = 34,                      /* term  */
-  YYSYMBOL_factor = 35                     /* factor  */
+  YYSYMBOL_YYACCEPT = 27,                  /* $accept  */
+  YYSYMBOL_program = 28,                   /* program  */
+  YYSYMBOL_stmt_list = 29,                 /* stmt_list  */
+  YYSYMBOL_stmt = 30,                      /* stmt  */
+  YYSYMBOL_31_1 = 31,                      /* $@1  */
+  YYSYMBOL_32_2 = 32,                      /* $@2  */
+  YYSYMBOL_optional_else = 33,             /* optional_else  */
+  YYSYMBOL_expr = 34,                      /* expr  */
+  YYSYMBOL_term = 35,                      /* term  */
+  YYSYMBOL_factor = 36                     /* factor  */
 };
 typedef enum yysymbol_kind_t yysymbol_kind_t;
 
@@ -501,16 +511,16 @@ union yyalloc
 #define YYLAST   100
 
 /* YYNTOKENS -- Number of terminals.  */
-#define YYNTOKENS  28
+#define YYNTOKENS  27
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  8
+#define YYNNTS  10
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  28
+#define YYNRULES  30
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  58
+#define YYNSTATES  59
 
 /* YYMAXUTOK -- Last valid token kind.  */
-#define YYMAXUTOK   282
+#define YYMAXUTOK   281
 
 
 /* YYTRANSLATE(TOKEN-NUM) -- Symbol number corresponding to TOKEN-NUM
@@ -552,16 +562,17 @@ static const yytype_int8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     1,     2,     3,     4,
        5,     6,     7,     8,     9,    10,    11,    12,    13,    14,
       15,    16,    17,    18,    19,    20,    21,    22,    23,    24,
-      25,    26,    27
+      25,    26
 };
 
 #if YYDEBUG
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_int16 yyrline[] =
 {
-       0,    83,    83,    88,    89,    94,   100,   124,   144,   151,
-     163,   172,   182,   210,   226,   241,   251,   261,   271,   281,
-     291,   302,   310,   326,   342,   358,   366,   379,   402
+       0,    89,    89,    94,    95,    99,   123,   151,   158,   179,
+     189,   197,   188,   223,   224,   229,   245,   260,   270,   280,
+     290,   300,   310,   321,   329,   345,   361,   377,   385,   398,
+     421
 };
 #endif
 
@@ -580,8 +591,8 @@ static const char *const yytname[] =
   "\"end of file\"", "error", "\"invalid token\"", "NUM", "ID", "STRING",
   "LT", "GT", "LE", "GE", "EQ", "NE", "PRINT", "SCAN", "IF", "ELSE",
   "WHILE", "RETURN", "PLUS", "MINUS", "MUL", "DIV", "REM", "ASSIGN",
-  "LPAREN", "RPAREN", "SEMICOLON", "LOWER_THAN_ELSE", "$accept", "program",
-  "stmt_list", "LABEL", "stmt", "expr", "term", "factor", YY_NULLPTR
+  "LPAREN", "RPAREN", "SEMICOLON", "$accept", "program", "stmt_list",
+  "stmt", "$@1", "$@2", "optional_else", "expr", "term", "factor", YY_NULLPTR
 };
 
 static const char *
@@ -610,7 +621,7 @@ static const yytype_int8 yypact[] =
       34,    26,   -15,    47,     4,     4,     4,     4,     4,     4,
        4,     4,   -15,     4,     4,     4,   -15,    67,   -15,   -15,
      -15,    18,    18,    18,    18,    18,    18,    18,    18,   -15,
-     -15,   -15,   -15,     6,    15,   -15,     6,   -15
+     -15,   -15,   -15,     6,   -15,    15,     6,   -15,   -15
 };
 
 /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -618,24 +629,24 @@ static const yytype_int8 yypact[] =
    means the default is an error.  */
 static const yytype_int8 yydefact[] =
 {
-       0,     0,     0,     0,     0,     0,     2,     4,     0,    26,
-      27,     0,     0,     0,    21,    25,     0,     0,     1,     3,
-       0,     0,     9,     0,     0,     0,     0,     0,     0,     0,
-       0,     0,     8,     0,     0,     0,    10,     0,     7,     6,
-      28,    16,    15,    18,    17,    20,    19,    13,    14,    22,
-      23,    24,     5,     0,    11,     5,     0,    12
+       0,     0,     0,     0,     0,     0,     2,     4,     0,    28,
+      29,     0,     0,     0,    23,    27,     0,     0,     1,     3,
+       0,     0,     8,     0,     0,     0,     0,     0,     0,     0,
+       0,     0,     7,     0,     0,     0,     9,     0,     6,     5,
+      30,    18,    17,    20,    19,    22,    21,    15,    16,    24,
+      25,    26,    10,     0,    11,    14,     0,    12,    13
 };
 
 /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -15,   -15,   -15,    -7,    -6,     9,    69,     8
+     -15,   -15,   -15,    -6,   -15,   -15,   -15,     9,    69,     8
 };
 
 /* YYDEFGOTO[NTERM-NUM].  */
 static const yytype_int8 yydefgoto[] =
 {
-       0,     5,     6,    53,     7,    13,    14,    15
+       0,     5,     6,     7,    53,    55,    57,    13,    14,    15
 };
 
 /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -646,9 +657,9 @@ static const yytype_int8 yytable[] =
       19,     9,    10,    11,     9,    10,    20,     9,    10,     8,
        1,    24,    25,    26,    27,    28,    29,    21,     2,     3,
        4,    23,    12,    30,    31,    12,    37,    16,    12,    18,
-      55,    32,    24,    25,    26,    27,    28,    29,    33,    34,
-      35,    49,    50,    51,    30,    31,    17,    54,    56,     0,
-      57,    22,    39,    24,    25,    26,    27,    28,    29,    36,
+      56,    32,    24,    25,    26,    27,    28,    29,    33,    34,
+      35,    49,    50,    51,    30,    31,    17,    54,     0,     0,
+      58,    22,    39,    24,    25,    26,    27,    28,    29,    36,
       38,     0,     0,     0,     0,    30,    31,     0,     0,     0,
        0,     0,    40,    24,    25,    26,    27,    28,    29,     0,
        0,     0,     0,     0,     0,    30,    31,     0,     0,     0,
@@ -662,7 +673,7 @@ static const yytype_int8 yycheck[] =
        4,     6,     7,     8,     9,    10,    11,     8,    12,    13,
       14,    12,    24,    18,    19,    24,    17,     4,    24,     0,
       15,    26,     6,     7,     8,     9,    10,    11,    20,    21,
-      22,    33,    34,    35,    18,    19,    24,    53,    55,    -1,
+      22,    33,    34,    35,    18,    19,    24,    53,    -1,    -1,
       56,    26,    26,     6,     7,     8,     9,    10,    11,    26,
       26,    -1,    -1,    -1,    -1,    18,    19,    -1,    -1,    -1,
       -1,    -1,    25,     6,     7,     8,     9,    10,    11,    -1,
@@ -675,28 +686,30 @@ static const yytype_int8 yycheck[] =
    state STATE-NUM.  */
 static const yytype_int8 yystos[] =
 {
-       0,     4,    12,    13,    14,    29,    30,    32,    23,     3,
-       4,     5,    24,    33,    34,    35,     4,    24,     0,    32,
-       5,    33,    26,    33,     6,     7,     8,     9,    10,    11,
-      18,    19,    26,    20,    21,    22,    26,    33,    26,    26,
-      25,    34,    34,    34,    34,    34,    34,    34,    34,    35,
-      35,    35,    25,    31,    32,    15,    31,    32
+       0,     4,    12,    13,    14,    28,    29,    30,    23,     3,
+       4,     5,    24,    34,    35,    36,     4,    24,     0,    30,
+       5,    34,    26,    34,     6,     7,     8,     9,    10,    11,
+      18,    19,    26,    20,    21,    22,    26,    34,    26,    26,
+      25,    35,    35,    35,    35,    35,    35,    35,    35,    36,
+      36,    36,    25,    31,    30,    32,    15,    33,    30
 };
 
 /* YYR1[RULE-NUM] -- Symbol kind of the left-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr1[] =
 {
-       0,    28,    29,    30,    30,    31,    32,    32,    32,    32,
-      32,    32,    32,    33,    33,    33,    33,    33,    33,    33,
-      33,    33,    34,    34,    34,    34,    35,    35,    35
+       0,    27,    28,    29,    29,    30,    30,    30,    30,    30,
+      31,    32,    30,    33,    33,    34,    34,    34,    34,    34,
+      34,    34,    34,    34,    35,    35,    35,    35,    36,    36,
+      36
 };
 
 /* YYR2[RULE-NUM] -- Number of symbols on the right-hand side of rule RULE-NUM.  */
 static const yytype_int8 yyr2[] =
 {
-       0,     2,     1,     2,     1,     0,     4,     4,     3,     3,
-       3,     6,     9,     3,     3,     3,     3,     3,     3,     3,
-       3,     1,     3,     3,     3,     1,     1,     1,     3
+       0,     2,     1,     2,     1,     4,     4,     3,     3,     3,
+       0,     0,     8,     2,     0,     3,     3,     3,     3,     3,
+       3,     3,     3,     1,     3,     3,     3,     1,     1,     1,
+       3
 };
 
 
@@ -1159,16 +1172,8 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-  case 5: /* LABEL: %empty  */
-#line 94 "parser.y"
-{
-    (yyval.str) = newLabel();
-}
-#line 1168 "parser.tab.c"
-    break;
-
-  case 6: /* stmt: ID ASSIGN expr SEMICOLON  */
-#line 101 "parser.y"
+  case 5: /* stmt: ID ASSIGN expr SEMICOLON  */
+#line 100 "parser.y"
        {
 
 	    if(vars[(yyvsp[-3].id)].isInitialized) {
@@ -1191,11 +1196,11 @@ yyreduce:
 		sprintf(buffer, "%c = %s", 'a' + (yyvsp[-3].id), (yyvsp[-1].val).place);
 		emit(buffer);
        }
-#line 1195 "parser.tab.c"
+#line 1200 "parser.tab.c"
     break;
 
-  case 7: /* stmt: ID ASSIGN STRING SEMICOLON  */
-#line 125 "parser.y"
+  case 6: /* stmt: ID ASSIGN STRING SEMICOLON  */
+#line 124 "parser.y"
         {
 	    if(vars[(yyvsp[-3].id)].isInitialized && vars[(yyvsp[-3].id)].isString == 0) {
 		printf("Type error: variable '%c' was int, cannot assign string\n", 'a' +(yyvsp[-3].id));
@@ -1206,44 +1211,61 @@ yyreduce:
 	    vars[(yyvsp[-3].id)].isString = 1;
 	    vars[(yyvsp[-3].id)].str = strdup((yyvsp[-1].str));
 	    char* temp = newTemp();
-char buffer1[100];
-sprintf(buffer1, "%s = \"%s\"", temp, (yyvsp[-1].str));
+char buffer1[200];
+char* strval3 = (yyvsp[-1].str);
+if(strval3[0] == '"') {
+    char stripped[200];
+    strncpy(stripped, strval3+1, strlen(strval3)-2);
+    stripped[strlen(strval3)-2] = '\0';
+    sprintf(buffer1, "%s = \"%s\"", temp, stripped);
+} else {
+    sprintf(buffer1, "%s = \"%s\"", temp, strval3);
+}
 emit(buffer1);
 
 char buffer2[100];
 sprintf(buffer2, "%c = %s", 'a' + (yyvsp[-3].id), temp);
 emit(buffer2);
            }
-#line 1218 "parser.tab.c"
+#line 1231 "parser.tab.c"
     break;
 
-  case 8: /* stmt: PRINT expr SEMICOLON  */
-#line 145 "parser.y"
+  case 7: /* stmt: PRINT expr SEMICOLON  */
+#line 152 "parser.y"
 {
     char buffer[100];
     sprintf(buffer, "PRINT %s", (yyvsp[-1].val).place);
     emit(buffer);
 }
-#line 1228 "parser.tab.c"
+#line 1241 "parser.tab.c"
     break;
 
-  case 9: /* stmt: PRINT STRING SEMICOLON  */
-#line 152 "parser.y"
+  case 8: /* stmt: PRINT STRING SEMICOLON  */
+#line 159 "parser.y"
 {
     char* temp = newTemp();
-    char buffer1[100];
-    sprintf(buffer1, "%s = \"%s\"", temp, (yyvsp[-1].str));
+    char buffer1[200];
+    /* $2 may already have surrounding quotes from lexer — strip them */
+    char* strval = (yyvsp[-1].str);
+    if(strval[0] == '"') {
+        char stripped[200];
+        strncpy(stripped, strval+1, strlen(strval)-2);
+        stripped[strlen(strval)-2] = '\0';
+        sprintf(buffer1, "%s = \"%s\"", temp, stripped);
+    } else {
+        sprintf(buffer1, "%s = \"%s\"", temp, strval);
+    }
     emit(buffer1);
 
     char buffer2[100];
     sprintf(buffer2, "PRINT %s", temp);
     emit(buffer2);
 }
-#line 1243 "parser.tab.c"
+#line 1265 "parser.tab.c"
     break;
 
-  case 10: /* stmt: SCAN ID SEMICOLON  */
-#line 164 "parser.y"
+  case 9: /* stmt: SCAN ID SEMICOLON  */
+#line 180 "parser.y"
 {
     vars[(yyvsp[-1].id)].isInitialized = 1;
     vars[(yyvsp[-1].id)].isString = 0;   // assume input numeric for now
@@ -1252,49 +1274,62 @@ emit(buffer2);
     sprintf(buffer, "READ %c", 'a' + (yyvsp[-1].id));
     emit(buffer);
 }
-#line 1256 "parser.tab.c"
+#line 1278 "parser.tab.c"
     break;
 
-  case 11: /* stmt: IF LPAREN expr RPAREN LABEL stmt  */
-#line 173 "parser.y"
-{
-    char buffer[100];
-
-    sprintf(buffer, "ifFalse %s goto %s", (yyvsp[-3].val).place, (yyvsp[-1].str));
-    emit(buffer);
-
-    sprintf(buffer, "%s:", (yyvsp[-1].str));
-    emit(buffer);
-}
-#line 1270 "parser.tab.c"
+  case 10: /* $@1: %empty  */
+#line 189 "parser.y"
+    {
+        char* elseLabel = newLabel();
+        pushLabel(elseLabel);
+        char buffer[100];
+        sprintf(buffer, "ifFalse %s goto %s", (yyvsp[-1].val).place, elseLabel);
+        emit(buffer);
+    }
+#line 1290 "parser.tab.c"
     break;
 
-  case 12: /* stmt: IF LPAREN expr RPAREN LABEL stmt ELSE LABEL stmt  */
-#line 183 "parser.y"
-{
-    char buffer[100];
-
-    // jump if condition false
-    sprintf(buffer, "ifFalse %s goto %s", (yyvsp[-6].val).place, (yyvsp[-4].str));
-    emit(buffer);
-
-    // jump over else part
-    sprintf(buffer, "goto %s", (yyvsp[-1].str));
-    emit(buffer);
-
-    // else label
-    sprintf(buffer, "%s:", (yyvsp[-4].str));
-    emit(buffer);
-
-    // end label
-    sprintf(buffer, "%s:", (yyvsp[-1].str));
-    emit(buffer);
-}
-#line 1294 "parser.tab.c"
+  case 11: /* $@2: %empty  */
+#line 197 "parser.y"
+    {
+        char* endLabel = newLabel();
+        pushLabel(endLabel);
+        char buffer[100];
+        sprintf(buffer, "goto %s", endLabel);
+        emit(buffer);
+        char buf2[100];
+        sprintf(buf2, "%s:", labelStack[top-1]);
+        emit(buf2);
+    }
+#line 1305 "parser.tab.c"
     break;
 
-  case 13: /* expr: expr PLUS term  */
-#line 211 "parser.y"
+  case 12: /* stmt: IF LPAREN expr RPAREN $@1 stmt $@2 optional_else  */
+#line 208 "parser.y"
+    {
+        char* endLabel = popLabel();
+        popLabel();
+        char buffer[100];
+        sprintf(buffer, "%s:", endLabel);
+        emit(buffer);
+    }
+#line 1317 "parser.tab.c"
+    break;
+
+  case 13: /* optional_else: ELSE stmt  */
+#line 223 "parser.y"
+                 { /* else body already parsed */ }
+#line 1323 "parser.tab.c"
+    break;
+
+  case 14: /* optional_else: %empty  */
+#line 224 "parser.y"
+                 { /* no else — nothing to do */ }
+#line 1329 "parser.tab.c"
+    break;
+
+  case 15: /* expr: expr PLUS term  */
+#line 230 "parser.y"
         {
             if((yyvsp[-2].val).isString || (yyvsp[0].val).isString) {
                 printf("Type error: cannot add string\n");
@@ -1309,11 +1344,11 @@ emit(buffer2);
 		(yyval.val).place = temp;
 		(yyval.val).isString = 0;
         }
-#line 1313 "parser.tab.c"
+#line 1348 "parser.tab.c"
     break;
 
-  case 14: /* expr: expr MINUS term  */
-#line 227 "parser.y"
+  case 16: /* expr: expr MINUS term  */
+#line 246 "parser.y"
         {
             if((yyvsp[-2].val).isString || (yyvsp[0].val).isString) {
                 printf("Type error: cannot subtract string\n");
@@ -1328,11 +1363,11 @@ emit(buffer2);
 		(yyval.val).place = temp;
 		(yyval.val).isString = 0;
         }
-#line 1332 "parser.tab.c"
+#line 1367 "parser.tab.c"
     break;
 
-  case 15: /* expr: expr GT term  */
-#line 242 "parser.y"
+  case 17: /* expr: expr GT term  */
+#line 261 "parser.y"
 {
     char* temp = newTemp();
     char buffer[100];
@@ -1342,11 +1377,11 @@ emit(buffer2);
     (yyval.val).place = temp;
     (yyval.val).isString = 0;
 }
-#line 1346 "parser.tab.c"
+#line 1381 "parser.tab.c"
     break;
 
-  case 16: /* expr: expr LT term  */
-#line 252 "parser.y"
+  case 18: /* expr: expr LT term  */
+#line 271 "parser.y"
 {
     char* temp = newTemp();
     char buffer[100];
@@ -1356,11 +1391,11 @@ emit(buffer2);
     (yyval.val).place = temp;
     (yyval.val).isString = 0;
 }
-#line 1360 "parser.tab.c"
+#line 1395 "parser.tab.c"
     break;
 
-  case 17: /* expr: expr GE term  */
-#line 262 "parser.y"
+  case 19: /* expr: expr GE term  */
+#line 281 "parser.y"
 {
     char* temp = newTemp();
     char buffer[100];
@@ -1370,11 +1405,11 @@ emit(buffer2);
     (yyval.val).place = temp;
     (yyval.val).isString = 0;
 }
-#line 1374 "parser.tab.c"
+#line 1409 "parser.tab.c"
     break;
 
-  case 18: /* expr: expr LE term  */
-#line 272 "parser.y"
+  case 20: /* expr: expr LE term  */
+#line 291 "parser.y"
 {
     char* temp = newTemp();
     char buffer[100];
@@ -1384,11 +1419,11 @@ emit(buffer2);
     (yyval.val).place = temp;
     (yyval.val).isString = 0;
 }
-#line 1388 "parser.tab.c"
+#line 1423 "parser.tab.c"
     break;
 
-  case 19: /* expr: expr NE term  */
-#line 282 "parser.y"
+  case 21: /* expr: expr NE term  */
+#line 301 "parser.y"
 {
     char* temp = newTemp();
     char buffer[100];
@@ -1398,11 +1433,11 @@ emit(buffer2);
     (yyval.val).place = temp;
     (yyval.val).isString = 0;
 }
-#line 1402 "parser.tab.c"
+#line 1437 "parser.tab.c"
     break;
 
-  case 20: /* expr: expr EQ term  */
-#line 292 "parser.y"
+  case 22: /* expr: expr EQ term  */
+#line 311 "parser.y"
 {
     char* temp = newTemp();
     char buffer[100];
@@ -1412,19 +1447,19 @@ emit(buffer2);
     (yyval.val).place = temp;
     (yyval.val).isString = 0;
 }
-#line 1416 "parser.tab.c"
+#line 1451 "parser.tab.c"
     break;
 
-  case 21: /* expr: term  */
-#line 303 "parser.y"
+  case 23: /* expr: term  */
+#line 322 "parser.y"
         {
             (yyval.val) = (yyvsp[0].val);
         }
-#line 1424 "parser.tab.c"
+#line 1459 "parser.tab.c"
     break;
 
-  case 22: /* term: term MUL factor  */
-#line 311 "parser.y"
+  case 24: /* term: term MUL factor  */
+#line 330 "parser.y"
         {
             if((yyvsp[-2].val).isString || (yyvsp[0].val).isString) {
                 printf("Type error: cannot multiply string\n");
@@ -1439,11 +1474,11 @@ emit(buffer2);
 		(yyval.val).place = temp;
 		(yyval.val).isString = 0;
         }
-#line 1443 "parser.tab.c"
+#line 1478 "parser.tab.c"
     break;
 
-  case 23: /* term: term DIV factor  */
-#line 327 "parser.y"
+  case 25: /* term: term DIV factor  */
+#line 346 "parser.y"
         {
             if((yyvsp[-2].val).isString || (yyvsp[0].val).isString) {
                 printf("Type error: cannot divide string\n");
@@ -1458,11 +1493,11 @@ emit(buffer2);
 	(yyval.val).place = temp;
 	(yyval.val).isString = 0;
         }
-#line 1462 "parser.tab.c"
+#line 1497 "parser.tab.c"
     break;
 
-  case 24: /* term: term REM factor  */
-#line 343 "parser.y"
+  case 26: /* term: term REM factor  */
+#line 362 "parser.y"
 {
     if((yyvsp[-2].val).isString || (yyvsp[0].val).isString) {
         printf("Type error: cannot mod string\n");
@@ -1477,19 +1512,19 @@ emit(buffer2);
     (yyval.val).place = temp;
     (yyval.val).isString = 0;
 }
-#line 1481 "parser.tab.c"
+#line 1516 "parser.tab.c"
     break;
 
-  case 25: /* term: factor  */
-#line 359 "parser.y"
+  case 27: /* term: factor  */
+#line 378 "parser.y"
         {
             (yyval.val) = (yyvsp[0].val);
         }
-#line 1489 "parser.tab.c"
+#line 1524 "parser.tab.c"
     break;
 
-  case 26: /* factor: NUM  */
-#line 367 "parser.y"
+  case 28: /* factor: NUM  */
+#line 386 "parser.y"
         {
             (yyval.val).isString = 0;
 	    (yyval.val).num = (yyvsp[0].num);
@@ -1501,11 +1536,11 @@ emit(buffer2);
 
 		(yyval.val).place = temp;
         }
-#line 1505 "parser.tab.c"
+#line 1540 "parser.tab.c"
     break;
 
-  case 27: /* factor: ID  */
-#line 380 "parser.y"
+  case 29: /* factor: ID  */
+#line 399 "parser.y"
         {
          if(!vars[(yyvsp[0].id)].isInitialized) {
 		printf("Error: variable '%c' used before initialization\n", 'a' + (yyvsp[0].id));
@@ -1527,19 +1562,19 @@ emit(buffer2);
 
 	    (yyval.val).place = temp;
 	 }
-#line 1531 "parser.tab.c"
+#line 1566 "parser.tab.c"
     break;
 
-  case 28: /* factor: LPAREN expr RPAREN  */
-#line 403 "parser.y"
+  case 30: /* factor: LPAREN expr RPAREN  */
+#line 422 "parser.y"
         {
             (yyval.val) = (yyvsp[-1].val);
         }
-#line 1539 "parser.tab.c"
+#line 1574 "parser.tab.c"
     break;
 
 
-#line 1543 "parser.tab.c"
+#line 1578 "parser.tab.c"
 
       default: break;
     }
@@ -1732,7 +1767,7 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 408 "parser.y"
+#line 427 "parser.y"
 
 
 void yyerror(const char *s) {
@@ -1750,13 +1785,28 @@ fprintf(fp, "int main() {\n");
 
 
 for(int i = 0; i < 26; i++) {
-    if(vars[i].isInitialized)
-        fprintf(fp, "int %c;\n", 'a' + i);
+    if(vars[i].isInitialized) {
+        if(vars[i].isString)
+            fprintf(fp, "char* %c;\n", 'a' + i);
+        else
+            fprintf(fp, "int %c;\n", 'a' + i);
+    }
 }
 
 
-for(int i = 0; i < tempCount; i++)
-    fprintf(fp, "int t%d;\n", i);
+/* declare temps: string temps get char*, others get int */
+for(int i = 0; i < tempCount; i++) {
+    int isStrTemp = 0;
+    char needle[20];
+    sprintf(needle, "t%d = \"", i);
+    for(int j = 0; j < irIndex; j++) {
+        if(strncmp(IR[j], needle, strlen(needle)) == 0) {
+            isStrTemp = 1; break;
+        }
+    }
+    if(isStrTemp) fprintf(fp, "char* t%d;\n", i);
+    else          fprintf(fp, "int t%d;\n", i);
+}
 
 
 for(int i = 0; i < irIndex; i++) {
@@ -1768,11 +1818,19 @@ for(int i = 0; i < irIndex; i++) {
         fprintf(fp, "scanf(\"%%d\", &%c);\n", var);
     }
 
-    // PRINT
+    // PRINT — detect string temp vs int temp
     else if(strncmp(IR[i], "PRINT", 5) == 0) {
         char var[20];
         sscanf(IR[i], "PRINT %s", var);
-        fprintf(fp, "printf(\"%%d\\n\", %s);\n", var);
+        /* check if this var is a string temp */
+        int isStr = 0;
+        char needle[30];
+        sprintf(needle, "%s = \"", var);
+        for(int j = 0; j < irIndex; j++) {
+            if(strncmp(IR[j], needle, strlen(needle)) == 0) { isStr = 1; break; }
+        }
+        if(isStr) fprintf(fp, "printf(\"%%s\\n\", %s);\n", var);
+        else      fprintf(fp, "printf(\"%%d\\n\", %s);\n", var);
     }
 
     // ifFalse → convert to valid C

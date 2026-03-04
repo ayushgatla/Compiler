@@ -29,7 +29,16 @@ char* newLabel() {
     sprintf(label, "L%d", labelCount++);
     return label;
 }
+char* labelStack[100];
+int top = -1;
 
+void pushLabel(char* l) {
+    labelStack[++top] = l;
+}
+
+char* popLabel() {
+    return labelStack[top--];
+}
 char* IR[1000];
 int irIndex = 0;
 
@@ -68,13 +77,10 @@ void emit(char* code) {
 
 /* ---------- TYPES ---------- */
 %type <val> expr term factor
-%type <str> LABEL
 /* ---------- PRECEDENCE ---------- */
 %left PLUS MINUS
 %left MUL DIV REM
 %left LT GT LE GE EQ NE
-%nonassoc LOWER_THAN_ELSE
-%nonassoc ELSE
 
 %%
 
@@ -87,13 +93,6 @@ program:
 stmt_list:
       stmt_list stmt
     | stmt
-;
-
-/* ---------- STATEMENTS ---------- */
-LABEL:
-{
-    $$ = newLabel();
-}
 ;
 
 stmt:
@@ -132,8 +131,16 @@ stmt:
 	    vars[$1].isString = 1;
 	    vars[$1].str = strdup($3);
 	    char* temp = newTemp();
-char buffer1[100];
-sprintf(buffer1, "%s = \"%s\"", temp, $3);
+char buffer1[200];
+char* strval3 = $3;
+if(strval3[0] == '"') {
+    char stripped[200];
+    strncpy(stripped, strval3+1, strlen(strval3)-2);
+    stripped[strlen(strval3)-2] = '\0';
+    sprintf(buffer1, "%s = \"%s\"", temp, stripped);
+} else {
+    sprintf(buffer1, "%s = \"%s\"", temp, strval3);
+}
 emit(buffer1);
 
 char buffer2[100];
@@ -151,8 +158,17 @@ emit(buffer2);
    | PRINT STRING SEMICOLON
 {
     char* temp = newTemp();
-    char buffer1[100];
-    sprintf(buffer1, "%s = \"%s\"", temp, $2);
+    char buffer1[200];
+    /* $2 may already have surrounding quotes from lexer — strip them */
+    char* strval = $2;
+    if(strval[0] == '"') {
+        char stripped[200];
+        strncpy(stripped, strval+1, strlen(strval)-2);
+        stripped[strlen(strval)-2] = '\0';
+        sprintf(buffer1, "%s = \"%s\"", temp, stripped);
+    } else {
+        sprintf(buffer1, "%s = \"%s\"", temp, strval);
+    }
     emit(buffer1);
 
     char buffer2[100];
@@ -169,41 +185,44 @@ emit(buffer2);
     sprintf(buffer, "READ %c", 'a' + $2);
     emit(buffer);
 }
-| IF LPAREN expr RPAREN LABEL stmt %prec LOWER_THAN_ELSE
-{
-    char buffer[100];
-
-    sprintf(buffer, "ifFalse %s goto %s", $3.place, $5);
-    emit(buffer);
-
-    sprintf(buffer, "%s:", $5);
-    emit(buffer);
-}
-| IF LPAREN expr RPAREN LABEL stmt ELSE LABEL stmt
-{
-    char buffer[100];
-
-    // jump if condition false
-    sprintf(buffer, "ifFalse %s goto %s", $3.place, $5);
-    emit(buffer);
-
-    // jump over else part
-    sprintf(buffer, "goto %s", $8);
-    emit(buffer);
-
-    // else label
-    sprintf(buffer, "%s:", $5);
-    emit(buffer);
-
-    // end label
-    sprintf(buffer, "%s:", $8);
-    emit(buffer);
-}
+| IF LPAREN expr RPAREN
+    {
+        char* elseLabel = newLabel();
+        pushLabel(elseLabel);
+        char buffer[100];
+        sprintf(buffer, "ifFalse %s goto %s", $3.place, elseLabel);
+        emit(buffer);
+    }
+  stmt
+    {
+        char* endLabel = newLabel();
+        pushLabel(endLabel);
+        char buffer[100];
+        sprintf(buffer, "goto %s", endLabel);
+        emit(buffer);
+        char buf2[100];
+        sprintf(buf2, "%s:", labelStack[top-1]);
+        emit(buf2);
+    }
+  optional_else
+    {
+        char* endLabel = popLabel();
+        popLabel();
+        char buffer[100];
+        sprintf(buffer, "%s:", endLabel);
+        emit(buffer);
+    }
 	
  ;
     
 	
 	
+
+/* ---------- OPTIONAL ELSE ---------- */
+optional_else:
+      ELSE stmt  { /* else body already parsed */ }
+    | %empty     { /* no else — nothing to do */ }
+;
 
 /* ---------- EXPRESSIONS ---------- */
 expr:
@@ -422,13 +441,28 @@ fprintf(fp, "int main() {\n");
 
 
 for(int i = 0; i < 26; i++) {
-    if(vars[i].isInitialized)
-        fprintf(fp, "int %c;\n", 'a' + i);
+    if(vars[i].isInitialized) {
+        if(vars[i].isString)
+            fprintf(fp, "char* %c;\n", 'a' + i);
+        else
+            fprintf(fp, "int %c;\n", 'a' + i);
+    }
 }
 
 
-for(int i = 0; i < tempCount; i++)
-    fprintf(fp, "int t%d;\n", i);
+/* declare temps: string temps get char*, others get int */
+for(int i = 0; i < tempCount; i++) {
+    int isStrTemp = 0;
+    char needle[20];
+    sprintf(needle, "t%d = \"", i);
+    for(int j = 0; j < irIndex; j++) {
+        if(strncmp(IR[j], needle, strlen(needle)) == 0) {
+            isStrTemp = 1; break;
+        }
+    }
+    if(isStrTemp) fprintf(fp, "char* t%d;\n", i);
+    else          fprintf(fp, "int t%d;\n", i);
+}
 
 
 for(int i = 0; i < irIndex; i++) {
@@ -440,11 +474,19 @@ for(int i = 0; i < irIndex; i++) {
         fprintf(fp, "scanf(\"%%d\", &%c);\n", var);
     }
 
-    // PRINT
+    // PRINT — detect string temp vs int temp
     else if(strncmp(IR[i], "PRINT", 5) == 0) {
         char var[20];
         sscanf(IR[i], "PRINT %s", var);
-        fprintf(fp, "printf(\"%%d\\n\", %s);\n", var);
+        /* check if this var is a string temp */
+        int isStr = 0;
+        char needle[30];
+        sprintf(needle, "%s = \"", var);
+        for(int j = 0; j < irIndex; j++) {
+            if(strncmp(IR[j], needle, strlen(needle)) == 0) { isStr = 1; break; }
+        }
+        if(isStr) fprintf(fp, "printf(\"%%s\\n\", %s);\n", var);
+        else      fprintf(fp, "printf(\"%%d\\n\", %s);\n", var);
     }
 
     // ifFalse → convert to valid C
