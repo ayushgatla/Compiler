@@ -55,29 +55,33 @@ extern int yydebug;
     YYerror = 256,                 /* error  */
     YYUNDEF = 257,                 /* "invalid token"  */
     NUM = 258,                     /* NUM  */
-    ID = 259,                      /* ID  */
-    STRING = 260,                  /* STRING  */
-    LT = 261,                      /* LT  */
-    GT = 262,                      /* GT  */
-    LE = 263,                      /* LE  */
-    GE = 264,                      /* GE  */
-    EQ = 265,                      /* EQ  */
-    NE = 266,                      /* NE  */
-    PRINT = 267,                   /* PRINT  */
-    SCAN = 268,                    /* SCAN  */
-    IF = 269,                      /* IF  */
-    ELSE = 270,                    /* ELSE  */
-    WHILE = 271,                   /* WHILE  */
-    RETURN = 272,                  /* RETURN  */
-    PLUS = 273,                    /* PLUS  */
-    MINUS = 274,                   /* MINUS  */
-    MUL = 275,                     /* MUL  */
-    DIV = 276,                     /* DIV  */
-    REM = 277,                     /* REM  */
-    ASSIGN = 278,                  /* ASSIGN  */
-    LPAREN = 279,                  /* LPAREN  */
-    RPAREN = 280,                  /* RPAREN  */
-    SEMICOLON = 281                /* SEMICOLON  */
+    STRING = 259,                  /* STRING  */
+    LT = 260,                      /* LT  */
+    GT = 261,                      /* GT  */
+    LE = 262,                      /* LE  */
+    GE = 263,                      /* GE  */
+    EQ = 264,                      /* EQ  */
+    NE = 265,                      /* NE  */
+    PRINT = 266,                   /* PRINT  */
+    SCAN = 267,                    /* SCAN  */
+    IF = 268,                      /* IF  */
+    ELSE = 269,                    /* ELSE  */
+    WHILE = 270,                   /* WHILE  */
+    RETURN = 271,                  /* RETURN  */
+    PLUS = 272,                    /* PLUS  */
+    MINUS = 273,                   /* MINUS  */
+    MUL = 274,                     /* MUL  */
+    DIV = 275,                     /* DIV  */
+    REM = 276,                     /* REM  */
+    ASSIGN = 277,                  /* ASSIGN  */
+    LPAREN = 278,                  /* LPAREN  */
+    RPAREN = 279,                  /* RPAREN  */
+    SEMICOLON = 280,               /* SEMICOLON  */
+    LBRACE = 281,                  /* LBRACE  */
+    RBRACE = 282,                  /* RBRACE  */
+    FUNC = 283,                    /* FUNC  */
+    COMMA = 284,                   /* COMMA  */
+    ID = 285                       /* ID  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
@@ -86,25 +90,13 @@ extern int yydebug;
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
 union YYSTYPE
 {
-#line 51 "parser.y"
+#line 16 "parser.y"
 
     int num;
-    int id;
     char* str;
+    AST *node;
 
-    struct {
-        int isString;
-        int num;
-        char* str;
-        char* place;  
-
-    } val;
-    struct {
-    char* L1;
-    char* L2;
-     } labels;
-
-#line 108 "parser.tab.h"
+#line 100 "parser.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
