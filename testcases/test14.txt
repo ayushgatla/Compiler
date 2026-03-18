@@ -1,0 +1,27 @@
+func five() {
+    give 5;
+}
+
+func ten() {
+    give 10;
+}
+
+display "Function Loop Test";
+
+i = 0;
+
+while (i < 4) {
+
+    a = five();
+    b = ten();
+
+    c = a * i;
+    d = b + i;
+
+    display c;
+    display d;
+
+    i = i + 1;
+}
+
+display "Done";

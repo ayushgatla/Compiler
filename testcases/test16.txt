@@ -1,0 +1,45 @@
+display "Control Flow Test";
+
+i = 0;
+
+while (i < 6) {
+
+    if (i == 0) {
+        display "zero";
+    }
+    else {
+
+        if (i == 1) {
+            display "one";
+        }
+        else {
+
+            if (i == 2) {
+                display "two";
+            }
+            else {
+
+                if (i == 3) {
+                    display "three";
+                }
+                else {
+
+                    if (i == 4) {
+                        display "four";
+                    }
+                    else {
+                        display "five";
+                    }
+
+                }
+
+            }
+
+        }
+
+    }
+
+    display i;
+
+    i = i + 1;
+}

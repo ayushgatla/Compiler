@@ -1,42 +1,56 @@
 #include <stdio.h>
 
-int foo(){
-int t8;
-printf("%s\n", "function called");
-t8 = 100;
-return t8;
-}
-
 int main(){
-int a,b,t0,c,t1,t2,t3,i,t4,t5,t6,t7,t9,x;
+int t0,a,t1,t2,t3,b,t4,t5,t6,c,t7,t8,t9,d,t10,t11,t12,t13,t14,t15,t16,t17,t18,t19,t20,t21,t22;
 
-printf("%s\n", "Compiler test");
-scanf("%d", &a);
-scanf("%d", &b);
-t0 = a + b;
-c = t0;
-printf("%d\n", c);
-t1 = 10;
-t2 = c > t1;
-if(!t2) goto L0;
-goto L1;
+t0 = 1;
+a = t0;
 L0:
-L1:
-t3 = 0;
-i = t3;
+t1 = 4;
+t2 = a < t1;
+if(!t2) goto L1;
+t3 = 1;
+b = t3;
 L2:
-t4 = 3;
-t5 = i < t4;
+t4 = 4;
+t5 = b < t4;
 if(!t5) goto L3;
-printf("%d\n", i);
 t6 = 1;
-t7 = i + t6;
-i = t7;
+c = t6;
+L4:
+t7 = 4;
+t8 = c < t7;
+if(!t8) goto L5;
+t9 = 1;
+d = t9;
+L6:
+t10 = 4;
+t11 = d < t10;
+if(!t11) goto L7;
+t12 = a + b;
+t13 = t12 + c;
+t14 = t13 + d;
+printf("%d\n", t14);
+t15 = 1;
+t16 = d + t15;
+d = t16;
+goto L6;
+L7:
+t17 = 1;
+t18 = c + t17;
+c = t18;
+goto L4;
+L5:
+t19 = 1;
+t20 = b + t19;
+b = t20;
 goto L2;
 L3:
-t9 = foo();
-x = t9;
-printf("%d\n", x);
+t21 = 1;
+t22 = a + t21;
+a = t22;
+goto L0;
+L1:
 
 return 0;
 }

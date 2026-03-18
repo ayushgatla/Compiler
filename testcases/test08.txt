@@ -1,0 +1,25 @@
+func square() {
+    give 4 * 4;
+}
+
+display "start";
+
+a = square();
+
+display a;
+
+i = 0;
+
+while (i < 3) {
+
+    if (i % 2 == 0) {
+        display "even";
+    }
+    else {
+        display "odd";
+    }
+
+    i = i + 1;
+}
+
+display "done";

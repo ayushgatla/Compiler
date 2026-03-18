@@ -1,0 +1,9 @@
+func giveFive() {
+
+    give 5;
+
+}
+
+a = giveFive();
+
+display a;

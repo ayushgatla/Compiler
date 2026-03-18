@@ -71,9 +71,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "symbol.h"
 #include <string.h>
 #include "ast.h"
-#include "symbol.h"
 
 AST *root;
 int current_scope = 0;
@@ -1452,7 +1452,7 @@ yyreduce:
 
   case 41: /* param_list: %empty  */
 #line 213 "parser.y"
-                         { (yyval.node) = NULL; }
+           { (yyval.node) = NULL; }
 #line 1457 "parser.tab.c"
     break;
 
@@ -1470,7 +1470,7 @@ yyreduce:
 
   case 44: /* arg_list: %empty  */
 #line 219 "parser.y"
-                         { (yyval.node) = NULL; }
+          { (yyval.node) = NULL; }
 #line 1475 "parser.tab.c"
     break;
 

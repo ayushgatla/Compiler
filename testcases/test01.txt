@@ -1,0 +1,14 @@
+a = 0;
+
+while (a < 5) {
+
+    if (a == 3) {
+        display "three";
+    }
+    else {
+        display a;
+    }
+
+    a = a + 1;
+
+}

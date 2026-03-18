@@ -1,9 +1,9 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "symbol.h"
 #include <string.h>
 #include "ast.h"
-#include "symbol.h"
 
 AST *root;
 int current_scope = 0;
@@ -12,14 +12,14 @@ int yylex(void);
 
 %}
 
-/* ---------- VALUE TYPES ---------- */
+//variable types
 %union {
     int num;
     char* str;
     AST *node;
 }
 
-/* ---------- TOKENS ---------- */
+//tockens
 %token <num> NUM
 
 %token <str> STRING
@@ -32,13 +32,13 @@ int yylex(void);
 %token <str> ID
 
 
-/* ---------- TYPES ---------- */
+//TYPES
 %type <node> program stmt stmt_list expr term factor 
 %type <node> param_list arg_list
 %type <node> top_list function top
 %type <node> matched_stmt unmatched_stmt
 
-/* ---------- PRECEDENCE ---------- */
+//precedence
 %left LT GT LE GE EQ NE
 %left PLUS MINUS
 %left MUL DIV REM
@@ -47,7 +47,7 @@ int yylex(void);
 
 %%
 
-/* ---------- PROGRAM ---------- */
+//program order
 program
     : top_list
         {
@@ -73,7 +73,7 @@ function:
     $$ = new_func($2,$4,$7);
 }
 ;
-/* ---------- STATEMENTS ---------- */
+//statements (production rules)
 stmt_list
     : stmt
         { $$ = $1; }
@@ -121,7 +121,7 @@ unmatched_stmt
         { $$ = new_if($3,$5,$7); }
     ;
     
-/* ---------- EXPRESSIONS ---------- */
+//expressions
 expr:
       expr PLUS term 
       { 
@@ -142,7 +142,7 @@ expr:
     | term { $$ = $1; }
 ;
 
-/* ---------- TERMS ---------- */
+//arithmatic terms
 term:
       term MUL factor
         {
@@ -165,7 +165,7 @@ term:
         }
 ;
 
-/* ---------- FACTORS ---------- */
+//factors
 factor:
       NUM
         {
@@ -210,13 +210,13 @@ param_list:
     add_symbol($3, SYM_PARAM, current_scope+1);
     $$ = new_node(AST_SEQ,$1,new_var($3));
     }
-    | /* empty */        { $$ = NULL; }
+    |      { $$ = NULL; }
 ;
 
 arg_list:
       expr               { $$ = $1; }
     | arg_list COMMA expr { $$ = new_node(AST_SEQ,$1,$3); }
-    | /* empty */        { $$ = NULL; }
+    |     { $$ = NULL; }
 ;
 %%
 

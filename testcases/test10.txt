@@ -1,0 +1,22 @@
+a = 0;
+
+while (a < 3) {
+
+    b = 0;
+
+    while (b < 3) {
+
+        c = 0;
+
+        while (c < 3) {
+
+            display a + b + c;
+
+            c = c + 1;
+        }
+
+        b = b + 1;
+    }
+
+    a = a + 1;
+}

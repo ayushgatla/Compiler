@@ -1,0 +1,23 @@
+display "Start";
+
+i = 0;
+
+while (i < 6) {
+
+    if (i % 2 == 0) {
+        display "even";
+    }
+    else {
+        display "odd";
+    }
+
+    if (i == 3) {
+        display "middle";
+    }
+
+    display i;
+
+    i = i + 1;
+}
+
+display "End";

@@ -1,0 +1,42 @@
+func square() {
+    give 4 * 4;
+}
+
+display "Stress Test Begin";
+
+a = square();
+
+display a;
+
+i = 0;
+sum = 0;
+
+while (i < 5) {
+
+    sum = sum + i;
+
+    if (i % 2 == 0) {
+        display "even index";
+    }
+    else {
+        display "odd index";
+    }
+
+    display i;
+
+    j = 0;
+
+    while (j < 2) {
+
+        display i + j;
+
+        j = j + 1;
+    }
+
+    i = i + 1;
+}
+
+display "sum";
+display sum;
+
+display "Stress Test End";

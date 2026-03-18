@@ -1,0 +1,20 @@
+func getFive() {
+    give 5;
+}
+display "Program Start";
+read x;
+a = getFive();
+b = a + x;
+display b;
+i = 0;
+while (i < 3) {
+    if (b > 10) {
+        display "big";
+    }
+    else {
+        display "small";
+    }
+    display i;
+    i = i + 1;
+}
+display "Program End";

@@ -1,0 +1,29 @@
+a = 1;
+
+while (a < 4) {
+
+    b = 1;
+
+    while (b < 4) {
+
+        c = 1;
+
+        while (c < 4) {
+
+            d = 1;
+
+            while (d < 4) {
+
+                display a + b + c + d;
+
+                d = d + 1;
+            }
+
+            c = c + 1;
+        }
+
+        b = b + 1;
+    }
+
+    a = a + 1;
+}

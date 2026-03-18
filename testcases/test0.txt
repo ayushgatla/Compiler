@@ -1,0 +1,5 @@
+display "Start";
+
+read x;
+
+display x;

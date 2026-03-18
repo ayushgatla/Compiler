@@ -1,0 +1,25 @@
+display "Program Begin";
+
+i = 1;
+sum = 0;
+
+while (i <= 10) {
+
+    sum = sum + i;
+
+    if (i % 2 == 0) {
+        display "even number";
+    }
+    else {
+        display "odd number";
+    }
+
+    display i;
+
+    i = i + 1;
+}
+
+display "sum is";
+display sum;
+
+display "Program End";

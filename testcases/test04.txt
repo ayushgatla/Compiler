@@ -1,0 +1,12 @@
+func calc() {
+
+    a = 5;
+    b = 6;
+
+    give a * b;
+
+}
+
+c = calc();
+
+display c;
