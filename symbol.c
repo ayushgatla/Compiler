@@ -3,20 +3,20 @@
 #include <string.h>
 #include "symbol.h"
 
-Symbol symtab[MAX_SYMBOLS];
+Symbol symtab[MAX_SYMBOLS];  /*stores all variables,functions,parameters*/
 int symcount = 0;
 
-void add_symbol(char *name, SymbolType type, int scope)
+void add_symbol(char *name, SymbolType type, int scope) /*adds every symbol to table*/
 {
     if(symcount >= MAX_SYMBOLS)
 	{
-	    printf("Symbol table overflow\n");
+	    printf("symbol table overflow");
 	    exit(1);
 	}
 
-	strcpy(symtab[symcount].name, name);
-	symtab[symcount].type = type;
-	symtab[symcount].scope = scope;
+	strcpy(symtab[symcount].name, name); /*stores identifier*/
+	symtab[symcount].type = type;	     /*stores type like var,function,parameter*/
+	symtab[symcount].scope = scope;      /*stores scope like global or local*/
 	symcount++;
 	}
 

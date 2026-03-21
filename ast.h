@@ -1,6 +1,6 @@
 #ifndef AST_H
 #define AST_H
-
+//declaration made for ast.c
 typedef enum {
     AST_NUM,
     AST_VAR,
@@ -26,7 +26,7 @@ typedef enum {
     AST_SEQ,
     AST_RETURN
 } NodeType;
-
+//a ast node
 typedef struct AST {
 
     NodeType type;
@@ -40,7 +40,7 @@ typedef struct AST {
     char *str;
 
 } AST;
-
+//declaration of different functions of ast
 AST* new_num(int value);
 AST* new_var(char *name);
 AST* new_string(char *str);

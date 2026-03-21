@@ -1,4 +1,4 @@
-#ifndef SYMBOL_H
+#ifndef SYMBOL_H    /*helps so thst declarationd are not duplicated*/
 #define SYMBOL_H
 
 #define MAX_SYMBOLS 256
@@ -15,7 +15,7 @@ typedef struct {
     int scope;
 } Symbol;
 
-extern Symbol symtab[MAX_SYMBOLS];
+extern Symbol symtab[MAX_SYMBOLS];  /*here extern makes sure that double declaration doesnt happen*/
 extern int symcount;
 
 void add_symbol(char *name, SymbolType type, int scope);

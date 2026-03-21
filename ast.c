@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "ast.h"
-
+//number
 AST* new_num(int value)
 {
     AST* node = malloc(sizeof(AST));
@@ -11,7 +11,7 @@ AST* new_num(int value)
     node->left = node->right = node->third = NULL;
     return node;
 }
-
+//variable
 AST* new_var(char *name)
 {
     AST* node = malloc(sizeof(AST));
@@ -20,7 +20,7 @@ AST* new_var(char *name)
     node->left = node->right = node->third = NULL;
     return node;
 }
-
+//string
 AST* new_string(char *str)
 {
     AST* node = malloc(sizeof(AST));
@@ -29,7 +29,7 @@ AST* new_string(char *str)
     node->left = node->right = node->third = NULL;
     return node;
 }
-
+//new node for sequences
 AST* new_node(NodeType type, AST *left, AST *right)
 {
     AST* node = malloc(sizeof(AST));
@@ -39,7 +39,7 @@ AST* new_node(NodeType type, AST *left, AST *right)
     node->third = NULL;
     return node;
 }
-
+//for assignment
 AST* new_assign(AST *var, AST *expr)
 {
     AST* node = malloc(sizeof(AST));
@@ -49,7 +49,7 @@ AST* new_assign(AST *var, AST *expr)
     node->third = NULL;
     return node;
 }
-
+//for printing
 AST* new_print(AST *expr)
 {
     AST* node = malloc(sizeof(AST));
@@ -58,7 +58,7 @@ AST* new_print(AST *expr)
     node->right = node->third = NULL;
     return node;
 }
-
+//for input
 AST* new_scan(AST *var)
 {
     AST* node = malloc(sizeof(AST));
@@ -67,7 +67,7 @@ AST* new_scan(AST *var)
     node->right = node->third = NULL;
     return node;
 }
-
+//if has condition , then , else as its branch here
 AST* new_if(AST *cond, AST *then_branch, AST *else_branch)
 {
     AST* node = malloc(sizeof(AST));
@@ -77,7 +77,7 @@ AST* new_if(AST *cond, AST *then_branch, AST *else_branch)
     node->third = else_branch;
     return node;
 }
-
+//for while it is condition and body as branches
 AST* new_while(AST *cond, AST *body)
 {
     AST *node = malloc(sizeof(AST));
@@ -87,7 +87,7 @@ AST* new_while(AST *cond, AST *body)
     node->third = NULL;
     return node;
 }
-
+//for function it has parameters and body as branches
 AST* new_func(char *name, AST *params, AST *body)
 {
     AST *node = malloc(sizeof(AST));
@@ -100,7 +100,7 @@ AST* new_func(char *name, AST *params, AST *body)
 
     return node;
 }
-
+//function call
 AST* new_call(char *name, AST *args)
 {
     AST *node = malloc(sizeof(AST));
@@ -111,7 +111,7 @@ AST* new_call(char *name, AST *args)
 
     return node;
 }
-
+//return
 AST* new_return(AST *expr)
 {
     AST *node = malloc(sizeof(AST));

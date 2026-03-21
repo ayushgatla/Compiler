@@ -11,7 +11,7 @@ typedef struct IR {
     char op[8];
     struct IR *next;
 } IR;
-
+//stores sequences of instructions in linked list
 IR *ir_head = NULL;
 IR *ir_tail = NULL;
 
@@ -26,21 +26,21 @@ char *new_label();
 int temp_count = 0;
 int label_count = 0;
 
-char *new_temp()
+char *new_temp()  //creates t0,t1,t2,t3 for intermidiate calculations
 {
     static char buffer[32];
     sprintf(buffer,"t%d",temp_count++);
     return strdup(buffer);
 }
 
-char *new_label()
+char *new_label()   
 {
     static char buffer[32];
     sprintf(buffer,"L%d",label_count++);
     return strdup(buffer);
 }
 
-void emit_args(AST *node)
+void emit_args(AST *node)  
 {
     if(node == NULL) return;
     if(node->type == AST_SEQ)
@@ -54,7 +54,7 @@ void emit_args(AST *node)
         emit("PARAM", arg, "", "");
     }
 }
-
+//creates intermediate expressions
 char *generate_expr(AST *node)
 {
     if(node->type == AST_NUM)
@@ -69,7 +69,8 @@ char *generate_expr(AST *node)
     if(node->type == AST_VAR)
         return strdup(node->name);
 
-    if(node->type == AST_ADD ||
+    if(node->type == AST_ADD ||    //operator precedneces is conserved here
+    				   //more priority is down	
        node->type == AST_SUB ||
        node->type == AST_MUL ||
        node->type == AST_DIV ||
@@ -86,11 +87,11 @@ char *generate_expr(AST *node)
         else if(node->type == AST_DIV) op = "/";
         else op = "%";
 
-        emit(t,left,op,right);
+        emit(t,left,op,right);  //expression created with required args
         return t;
     }
 
-    if(node->type == AST_GT ||
+    if(node->type == AST_GT ||	//check if node has any conditiona; operator
        node->type == AST_LT ||
        node->type == AST_GE ||
        node->type == AST_LE ||
@@ -113,7 +114,7 @@ char *generate_expr(AST *node)
         return t;
     }
 
-    if(node->type == AST_CALL)
+    if(node->type == AST_CALL)  //for function call
     {
         emit_args(node->left);
         char *temp = new_temp();
@@ -200,7 +201,7 @@ void generate_ir(AST *node)
         {
             emit("FUNC", node->name, "", "");
 
-            /* emit PARAM_DEF for each parameter */
+            // emit PARAM_DEF for each parameter 
             AST *p = node->left;
             while(p)
             {
@@ -239,7 +240,7 @@ void collect_vars(char vars[100][32], int *count)
 
     while(t)
     {
-        /* skip all non-assignment instructions */
+        // skip all non assignment instructions 
         if(strcmp(t->result,"PARAM_DEF")==0 ||
            strcmp(t->result,"PRINT")==0     ||
            strcmp(t->result,"LABEL")==0     ||
@@ -271,7 +272,7 @@ void collect_vars(char vars[100][32], int *count)
             continue;
         }
 
-        /* collect result variable */
+        // collect result variable 
         if(strlen(t->result) && isalpha((unsigned char)t->result[0]))
         {
             int found = 0;
@@ -285,7 +286,7 @@ void collect_vars(char vars[100][32], int *count)
             }
         }
 
-        /* collect arg1 variable */
+        // collect arg1 variable 
         if(strlen(t->arg1) && isalpha((unsigned char)t->arg1[0]))
         {
             int found = 0;
@@ -314,7 +315,7 @@ void generate_c()
 
     fprintf(f,"#include <stdio.h>\n\n");
 
-    /* ── PASS 1: generate functions ── */
+    // generate functions 
 
     IR *t = ir_head;
 
@@ -322,16 +323,16 @@ void generate_c()
     {
         if(strcmp(t->result,"FUNC")==0)
         {
-            /* build signature from PARAM_DEF instructions */
+            // build signature from PARAM_DEF instructions 
             char sig[256] = "";
             IR *scan = t->next;
 
-            /* skip to first PARAM_DEF */
+            // skip to first PARAM_DEF
             while(scan && strcmp(scan->result,"PARAM_DEF")!=0
                        && strcmp(scan->result,"END_FUNC")!=0)
                 scan = scan->next;
 
-            /* collect all PARAM_DEF */
+            // collect all PARAM_DEF 
             int first_param = 1;
             while(scan && strcmp(scan->result,"PARAM_DEF")==0)
             {
@@ -344,8 +345,8 @@ void generate_c()
 
             fprintf(f,"int %s(%s){\n", t->arg1, sig);
 
-            /* collect local vars (excluding params) */
-            /* first gather param names so we can skip them */
+            // collect local vars (excluding params) 
+            // first gather param names so we can skip them 
             char params[32][32];
             int  pcount = 0;
             IR *ps = t->next;
@@ -355,14 +356,13 @@ void generate_c()
                 ps = ps->next;
             }
 
-            /* collect all vars from whole IR, then filter */
+            // collect all vars from whole IR, then filter 
             char vars[100][32];
             int  count = 0;
             collect_vars(vars, &count);
 
-            /* print locals that are not params and not main-scope vars */
-            /* we only want vars used inside this function body */
-            /* simple approach: collect vars between FUNC..END_FUNC */
+            /* print locals that are not parameters and not main scope vars .
+             we only want vars used inside this function body  */
             char local_vars[100][32];
             int  local_count = 0;
             IR *body = t->next;
@@ -371,7 +371,7 @@ void generate_c()
 
             while(body && strcmp(body->result,"END_FUNC")!=0)
             {
-                /* result */
+                //result
                 if(strlen(body->result) && isalpha((unsigned char)body->result[0]) &&
                    strcmp(body->result,"PRINT")!=0   &&
                    strcmp(body->result,"SCAN")!=0    &&
@@ -382,7 +382,7 @@ void generate_c()
                    strcmp(body->result,"PARAM")!=0   &&
                    strcmp(body->op,"CALL")!=0)
                 {
-                    /* skip if it's a param */
+                    //skip if it's a parameter
                     int is_param = 0;
                     for(int i=0;i<pcount;i++)
                         if(strcmp(params[i],body->result)==0) is_param=1;
@@ -412,12 +412,12 @@ void generate_c()
                 fprintf(f,";\n");
             }
 
-            /* advance t past PARAM_DEFs */
+            // advance t past PARAM_DEFs 
             t = t->next;
             while(t && strcmp(t->result,"PARAM_DEF")==0)
                 t = t->next;
 
-            /* emit function body */
+            // emit function body
             while(t && strcmp(t->result,"END_FUNC")!=0)
             {
                 if(strcmp(t->result,"PRINT")==0)
@@ -433,7 +433,7 @@ void generate_c()
                 }
                 else if(strcmp(t->result,"PARAM")==0)
                 {
-                    /* skip */
+                    // skip 
                 }
                 else if(strcmp(t->op,"CALL")==0)
                 {
@@ -468,13 +468,13 @@ void generate_c()
         if(t) t = t->next;
     }
 
-    /* ── PASS 2: generate main ── */
+    //generate main 
 
     t = ir_head;
 
     fprintf(f,"int main(){\n");
 
-    /* collect main-scope vars only (outside any FUNC..END_FUNC) */
+    // collect main-scope vars only 
     char main_vars[100][32];
     int  main_count = 0;
     IR *mv = ir_head;
@@ -537,7 +537,7 @@ if(strcmp(mv->op,"CALL")==0)
 
     while(t)
     {
-        /* skip function definitions */
+        // skip function definitions 
         if(strcmp(t->result,"FUNC")==0)
         {
             while(t && strcmp(t->result,"END_FUNC")!=0)
@@ -654,7 +654,7 @@ void print_ir()
         t=t->next;
     }
 }
-
+//adds isntructions for ir list like emit("t1","a","+","b") 
 void emit(char *result, char *arg1, char *op, char *arg2)
 {
     IR *node = malloc(sizeof(IR));

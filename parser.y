@@ -51,7 +51,7 @@ int yylex(void);
 program
     : top_list
         {
-            root = $1;
+            root = $1;  /*final ast stored in root(redsult of $1)*/
         }
 ;
 top_list:
@@ -65,12 +65,14 @@ top:
     | function
 ;
 function:
-    FUNC ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE
+    FUNC ID LPAREN param_list RPAREN LBRACE stmt_list RBRACE		/*func add(a,b) {
+									   return a+b;
+									}*/
 {
     if(lookup_symbol($2) == -1)
         add_symbol($2, SYM_FUNC, 0);
 
-    $$ = new_func($2,$4,$7);
+    $$ = new_func($2,$4,$7);  /*$2 here is function name , $4 is parameters, $7 is body*/ 
 }
 ;
 //statements (production rules)
@@ -82,8 +84,8 @@ stmt_list
     ;
 
 stmt
-    : matched_stmt
-    | unmatched_stmt
+    : matched_stmt     /*solves dangling else problem*/
+    | unmatched_stmt	/*matched for if else and unmatched for if only*/
     ;
     
 matched_stmt
@@ -91,7 +93,7 @@ matched_stmt
         { $$ = new_if($3,$5,$7); }
     | ID ASSIGN expr SEMICOLON
         { 
-        if(lookup_symbol($1) == -1)              // for semantic analysis
+        if(lookup_symbol($1) == -1)              // for semantic analysis we use lookup
         add_symbol($1, SYM_VAR, current_scope);
         $$ = new_assign(new_var($1),$3); 
         }
@@ -125,7 +127,7 @@ unmatched_stmt
 expr:
       expr PLUS term 
       { 
-      $$ = new_node(AST_ADD, $1, $3); 
+      $$ = new_node(AST_ADD, $1, $3); //creates a new node of type AST_ADD
       }
       
       
@@ -174,7 +176,7 @@ factor:
 
     | ID
         {
-             if(lookup_symbol($1) == -1)
+             if(lookup_symbol($1) == -1)   /*if non decalred variables gets accesed then error*/
 	    {
 		printf("Semantic Error: variable %s not declared\n",$1);
 		exit(1);
@@ -198,13 +200,13 @@ factor:
 }
 ;
 param_list:
-    ID   
+    ID   						/*for only one param*/
         { 
 	    add_symbol($1, SYM_PARAM, current_scope+1);
 	    $$ = new_var($1);
         } 
         
-    | param_list COMMA ID 
+    | param_list COMMA ID				/*for only multple param*/ 
     
     {
     add_symbol($3, SYM_PARAM, current_scope+1);
@@ -220,13 +222,13 @@ arg_list:
 ;
 %%
 
-void yyerror(const char *s) {
+void yyerror(const char *s) {       /*error handeling*/
     printf("Syntax error: %s\n", s);
 }
 
-void generate_ir(AST *node);
+void generate_ir(AST *node);       /*genereates intermedite representation*/
 void print_ir();
-void generate_c();
+void generate_c();			/*generates output.c*/
 
 int main()
 {
