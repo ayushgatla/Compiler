@@ -117,10 +117,8 @@ Source → Lexer → Parser → TAC → Assembly → Executable
 
 **Not Supported:**
 
-- Functions, if-else, for loops
-- Arrays, pointers, strings
+- Arrays, pointers
 - Multi-character variables
-- Types other than int
 
 **Supported:**
 
@@ -128,6 +126,8 @@ Source → Lexer → Parser → TAC → Assembly → Executable
 - Operators: `+`, `-`, `*`, `/`, `<`, `=`
 - Control: `while` only
 - I/O: `scanf`, `print`
+- functions, while loops
+- if else , if only
 
 ---
 
