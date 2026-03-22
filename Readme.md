@@ -63,7 +63,13 @@ gcc out.s -o test && ./test
 ```
 
 ---
+```bash
+or just make run_tests.sh as exec and run it
+chmod +x run_test.sh
+./run_tests.sh
+```
 
+---
 ## 💡 Examples
 
 ### Factorial
